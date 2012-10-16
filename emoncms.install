@@ -1,0 +1,56 @@
+<?php
+/**
+ * Implementation of hook_schema()
+ *
+ * TODO: Describe the module's data model
+ *
+ */
+function emoncms_schema() {
+
+  // Create the tables we need then use schema module to getnerate proper schema syntax for this
+  
+  $schema = array();
+  
+  $schema['emoncms_user'] = array(
+  'description' => t('EmonCMS user data'),
+  'fields' => array(
+    'uid' => array(
+      'description' => t('Drupal User ID'),
+      'type' => 'int',
+      'size' => 'medium',
+      'not null' => true
+    ),
+    'api_key' => array(
+      'description' => t('EmonCMS API Key'),
+      'type' => 'varchar',
+      'length' => '255',
+      'not null' => true
+    ),
+  ),
+  'primary key' => array('uid'),
+  );
+
+   return $schema;
+}
+
+/**
+ * Implementation of hook_install()
+ *
+ * Perform initial setup tasks
+ *
+ */
+function emoncms_install() {
+  // Perform install stuff
+  drupal_install_schema('emoncms');
+}
+
+/**
+ * Implementation of hook_uninstall()
+ *
+ * Perform final cleanup tasks
+ *
+ */
+function emoncms_uninstall() {
+  // perform uninstall stuff
+  drupal_uninstall_schema('emoncms');
+}

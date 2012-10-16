@@ -1,0 +1,6 @@
+name = EmonCMS
+description = "API hooks for Emon CMS"
+core = 7.x
+; package = package_name
+
+; dependencies[] = module_dependent

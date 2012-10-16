@@ -1,0 +1,80 @@
+<?php
+
+//	NOTE: YouÕll need to set the $emoncms_url variable within the 
+//	emoncms_register_user_action() function below.
+
+
+
+
+/**
+ * Implementation of hook_action_info().
+ */
+function emoncms_action_info() {
+  
+  return array(
+    'emoncms_register_user_action' => array(
+      'description' => t('Register the user with EmonCMS and log a unique API key.'),
+      'type' => 'user',
+      'configurable' => false,
+      'hooks' => array(
+        'user' => array('insert')
+        ),
+      )
+  );
+}
+
+
+/**
+ * Implementation of a Drupal action.
+ * Register the user with EmonCMS and log a unique API key. 
+ */
+function emoncms_register_user_action(&$object, $context = array()) {
+  // get the uid from the object
+  if (isset($object->uid)) {
+    $uid = $object->uid;
+  }
+  elseif (isset($context['uid'])) {
+    $uid = $context['uid'];
+  }
+  else {
+    global $user;
+    $uid = $user->uid;
+  }
+  // make sure we have a user record
+  if ($uid) {
+    $user = user_load($uid);
+    
+    
+    // call EmonCMS API and create a new user
+    
+    $emoncms_url = '';	//****  EmonCMS root URL goes here  ****
+    
+    $url = $emoncms_url . '/user/create.json';	//	EmonCMS API endpoint
+    $response = drupal_http_request($url, array(
+    	'method' => 'POST',
+    	'data' => array(
+    		'name' => $user->name,
+    		'pass' => $user->pass,
+    		'returnapikey' => 'true'
+    	)
+    ));
+    
+    if ($response && $response->data) {
+    	$nid = db_insert('emoncms_user')
+    		->fields(array(
+    			'uid' => $user->uid,
+    			'api_key' => $response->data,
+    		))
+    		->execute();
+    	if ($nid) {
+    		watchdog('action', 'User registered with EmonCMS: %name / uid=%uid.', array('%name' => check_plain($user->name), '%uid' => $uid));
+    	}
+    }
+    else {
+    	//	error registering user with EmonCMS
+    	watchdog('action', 'Failed to register user with EmonCMS: %name / uid=%uid.', array('%name' => check_plain($user->name), '%uid' => $uid));
+    }
+    
+  }
+}
+
